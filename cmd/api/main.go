@@ -26,7 +26,8 @@ func main() {
 
 	r := chi.NewRouter()
 
-	auth := auth.NewAuthHandler(db)
+	jwtSecret := os.Getenv("JWT_SECRET")
+	auth := auth.NewAuthHandler(db, jwtSecret)
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", auth.HandleSignUp)
 		r.Post("/login", auth.HandleLogin)
