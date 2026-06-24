@@ -18,7 +18,7 @@ func (ah *AuthHandler) createJWT(userID int, email string, is_admin bool) (strin
 			"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		})
 
-	tokenString, err := token.SignedString(ah.jwtSecret)
+	tokenString, err := token.SignedString([]byte(ah.jwtSecret))
 	if err != nil {
 		return "", fmt.Errorf("signing the token: %w", err)
 	}
