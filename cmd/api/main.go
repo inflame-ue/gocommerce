@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/inflame-ue/gocommerce/internal/auth"
 	"github.com/inflame-ue/gocommerce/internal/database"
+	"github.com/inflame-ue/gocommerce/internal/products"
 	"github.com/joho/godotenv"
 )
 
@@ -31,6 +32,16 @@ func main() {
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/signup", auth.HandleSignUp)
 		r.Post("/login", auth.HandleLogin)
+	})
+
+	product := products.NewProductHandler(db)
+	r.Get("/products", product.HandleGetProducts)
+	r.Get("/product/{id}", product.HandleGetProduct)
+	r.Group(func(r chi.Router) {
+		r.Use(auth.AuthMiddleware)
+		r.Post("/products", product.HandleCreateProduct)
+		r.Put("/products/{id}", product.HandleUpdateProduct)
+		r.Delete("/products/{id}", product.HandleDeleteProduct)
 	})
 
 	port := os.Getenv("PORT")

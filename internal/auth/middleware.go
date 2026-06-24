@@ -34,6 +34,7 @@ func (ah *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 		jwtToken, err := parseJWTToken(r)
 		if err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
 		}
 
 		claims, err := ah.validateJWT(jwtToken)
@@ -41,6 +42,7 @@ func (ah *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "failed to verify the JWT"})
 			return
 		}
+		
 		ctx := context.WithValue(r.Context(), claimsKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
