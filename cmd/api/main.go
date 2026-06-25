@@ -36,7 +36,7 @@ func main() {
 
 	product := products.NewProductHandler(db)
 	r.Get("/products", product.HandleGetProducts)
-	r.Get("/product/{productID}", product.HandleGetProduct)
+	r.Get("/products/{productID}", product.HandleGetProduct)
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthMiddleware)
 		r.Post("/products", product.HandleCreateProduct)

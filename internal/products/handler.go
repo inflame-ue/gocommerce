@@ -8,9 +8,19 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/inflame-ue/gocommerce/internal/auth"
 	"github.com/inflame-ue/gocommerce/internal/response"
 	"github.com/jackc/pgx/v5"
 )
+
+func isAdminUser(r *http.Request) bool {
+	userClaims := auth.ClaimsFromContext(r.Context())
+	isAdmin, ok := userClaims["is_admin"].(bool)
+	if !ok || !isAdmin {
+		return false
+	}
+	return true
+}
 
 func (ph *ProductHandler) HandleGetProducts(w http.ResponseWriter, r *http.Request) {
 	products, err := ph.ListProducts(r.Context())
@@ -37,7 +47,7 @@ func (ph *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Reques
 	product, err := ph.GetProductByID(r.Context(), productID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no product with such an ID exists"})
+			response.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "no product with such an ID exists"})
 			return
 		}
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not fetch the product record"})
@@ -48,6 +58,11 @@ func (ph *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
+	if !isAdminUser(r) {
+		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to create a new product"})
+		return
+	}
+
 	var productReq productModel
 	if err := json.NewDecoder(r.Body).Decode(&productReq); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the provided JSON could not be parsed"})
@@ -70,13 +85,24 @@ func (ph *ProductHandler) HandleCreateProduct(w http.ResponseWriter, r *http.Req
 }
 
 func (ph *ProductHandler) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) {
+	if !isAdminUser(r) {
+		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to update a product"})
+		return
+	}
+
+	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "productID parameter must be an integer"})
+		return
+	}
+
 	var productReq productModel
 	if err := json.NewDecoder(r.Body).Decode(&productReq); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the provided JSON could not be parsed"})
 		return
 	}
 
-	product, err := ph.UpdateProductByID(r.Context(), productReq.ID, productReq.Name, productReq.Price, productReq.Stock)
+	product, err := ph.UpdateProductByID(r.Context(), productID, productReq.Name, productReq.Price, productReq.Stock)
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not updated the product record"})
 		return
@@ -86,6 +112,11 @@ func (ph *ProductHandler) HandleUpdateProduct(w http.ResponseWriter, r *http.Req
 }
 
 func (ph *ProductHandler) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
+	if !isAdminUser(r) {
+		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to delete a product"})
+		return
+	}
+
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "productID parameter must be an integer"})
@@ -98,7 +129,8 @@ func (ph *ProductHandler) HandleDeleteProduct(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if affected == 0 {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no product record with the provided productID is available"})
+		response.WriteJSON(w, http.StatusNotFound, map[string]string{"error": "no product record with the provided productID is available"})
+		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, map[string]string{"message": fmt.Sprintf("product record with id %d was successfully deleted", productID)})

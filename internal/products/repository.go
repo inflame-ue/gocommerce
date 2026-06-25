@@ -54,7 +54,7 @@ func (ph *ProductHandler) UpdateProductByID(ctx context.Context, id int, name st
 func (ph *ProductHandler) DeleteProductByID(ctx context.Context, id int) (int, error) {
 	cmdTag, err := ph.db.Conn.Exec(ctx, "DELETE FROM products WHERE id = $1", id)
 	if err != nil {
-		return int(cmdTag.RowsAffected()), fmt.Errorf("deleting the record: %w", err)
+		return 0, fmt.Errorf("deleting the record: %w", err)
 	}
 	return int(cmdTag.RowsAffected()), nil
 }
