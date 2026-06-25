@@ -9,7 +9,7 @@ func (ch *CartHandler) ListCartItems(ctx context.Context, userID int) ([]CartIte
 	var item CartItem
 	var items []CartItem
 
-	rows, err := ch.db.Conn.Query(ctx, "SELECT cart_items.quantity, products.id, products.name, products.price FROM cart_items JOIN products ON carts_items.product_id WHERE user_id = $1", userID)
+	rows, err := ch.db.Conn.Query(ctx, "SELECT cart_items.quantity, products.id, products.name, products.price FROM cart_items JOIN products ON carts_items.product_id = products.id WHERE cart_items.user_id = $1", userID)
 	if err != nil {
 		return nil, fmt.Errorf("creating the query: %w", err)
 	}
