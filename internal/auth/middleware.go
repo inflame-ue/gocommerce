@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/inflame-ue/gocommerce/internal/response"
 )
 
 type contextKey string
@@ -33,14 +34,16 @@ func (ah *AuthHandler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jwtToken, err := parseJWTToken(r)
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
 		}
 
 		claims, err := ah.validateJWT(jwtToken)
 		if err != nil {
-			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "failed to verify the JWT"})
+			response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "failed to verify the JWT"})
 			return
 		}
+
 		ctx := context.WithValue(r.Context(), claimsKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
