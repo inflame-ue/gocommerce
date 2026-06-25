@@ -59,7 +59,7 @@ func (ph *ProductHandler) HandleGetProduct(w http.ResponseWriter, r *http.Reques
 
 func (ph *ProductHandler) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	if !isAdminUser(r) {
-		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to create a new product"})
+		response.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "you must be an admin to create a new product"})
 		return
 	}
 
@@ -86,7 +86,7 @@ func (ph *ProductHandler) HandleCreateProduct(w http.ResponseWriter, r *http.Req
 
 func (ph *ProductHandler) HandleUpdateProduct(w http.ResponseWriter, r *http.Request) {
 	if !isAdminUser(r) {
-		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to update a product"})
+		response.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "you must be an admin to update a product"})
 		return
 	}
 
@@ -113,7 +113,7 @@ func (ph *ProductHandler) HandleUpdateProduct(w http.ResponseWriter, r *http.Req
 
 func (ph *ProductHandler) HandleDeleteProduct(w http.ResponseWriter, r *http.Request) {
 	if !isAdminUser(r) {
-		response.WriteJSON(w, http.StatusUnauthorized, map[string]string{"error": "you must be an admin to delete a product"})
+		response.WriteJSON(w, http.StatusForbidden, map[string]string{"error": "you must be an admin to delete a product"})
 		return
 	}
 
