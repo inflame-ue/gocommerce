@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/inflame-ue/gocommerce/internal/auth"
+	"github.com/inflame-ue/gocommerce/internal/carts"
 	"github.com/inflame-ue/gocommerce/internal/database"
 	"github.com/inflame-ue/gocommerce/internal/products"
 	"github.com/joho/godotenv"
@@ -42,6 +43,14 @@ func main() {
 		r.Post("/products", product.HandleCreateProduct)
 		r.Put("/products/{productID}", product.HandleUpdateProduct)
 		r.Delete("/products/{productID}", product.HandleDeleteProduct)
+	})
+
+	cart := carts.NewCartHandler(db)
+	r.Group(func(r chi.Router) {
+		r.Use(auth.AuthMiddleware)
+		r.Get("/cart", cart.HandleGetCart)
+		r.Post("/cart", cart.HandleAddProductToCart)
+		r.Delete("/cart/{productID}", cart.HandleDeleteProductFromCart)
 	})
 
 	port := os.Getenv("PORT")
