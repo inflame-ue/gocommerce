@@ -36,12 +36,12 @@ func main() {
 
 	product := products.NewProductHandler(db)
 	r.Get("/products", product.HandleGetProducts)
-	r.Get("/product/{id}", product.HandleGetProduct)
+	r.Get("/product/{productID}", product.HandleGetProduct)
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthMiddleware)
 		r.Post("/products", product.HandleCreateProduct)
-		r.Put("/products/{id}", product.HandleUpdateProduct)
-		r.Delete("/products/{id}", product.HandleDeleteProduct)
+		r.Put("/products/{productID}", product.HandleUpdateProduct)
+		r.Delete("/products/{productID}", product.HandleDeleteProduct)
 	})
 
 	port := os.Getenv("PORT")
