@@ -11,12 +11,8 @@ import (
 
 func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID, ok := userClaims["sub"].(int)
-	if !ok {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
-		return
-	}
-
+	userID := userClaims["sub"].(int)
+	
 	items, err := ch.ListCartItems(r.Context(), userID)
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to fetch cart items from the database"})
@@ -33,11 +29,8 @@ func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
 
 func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID, ok := userClaims["sub"].(int)
-	if !ok {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
-		return
-	}
+	userID := userClaims["sub"].(int)
+
 
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
@@ -56,11 +49,7 @@ func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Req
 
 func (ch *CartHandler) HandleDeleteProductFromCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID, ok := userClaims["sub"].(int)
-	if !ok {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
-		return
-	}
+	userID := userClaims["sub"].(int)
 
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
