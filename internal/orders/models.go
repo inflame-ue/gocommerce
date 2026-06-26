@@ -21,6 +21,7 @@ type productModel struct {
 	Name      string  `json:"name"`
 	UnitPrice float64 `json:"price"`
 	Quantity  int     `json:"quantity"`
+	Stock     int     `json:"stock,omitempty"`
 }
 
 type OrderModel struct {
