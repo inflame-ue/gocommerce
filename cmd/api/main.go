@@ -10,6 +10,7 @@ import (
 	"github.com/inflame-ue/gocommerce/internal/auth"
 	"github.com/inflame-ue/gocommerce/internal/carts"
 	"github.com/inflame-ue/gocommerce/internal/database"
+	"github.com/inflame-ue/gocommerce/internal/orders"
 	"github.com/inflame-ue/gocommerce/internal/products"
 	"github.com/joho/godotenv"
 )
@@ -40,6 +41,8 @@ func main() {
 	r.Get("/products/{productID}", product.HandleGetProduct)
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthMiddleware)
+
+		// require admin rights as well
 		r.Post("/products", product.HandleCreateProduct)
 		r.Put("/products/{productID}", product.HandleUpdateProduct)
 		r.Delete("/products/{productID}", product.HandleDeleteProduct)
@@ -51,6 +54,15 @@ func main() {
 		r.Get("/cart", cart.HandleGetCart)
 		r.Post("/cart/{productID}", cart.HandleAddProductToCart)
 		r.Delete("/cart/{productID}", cart.HandleDeleteProductFromCart)
+	})
+
+	order := orders.NewOrderHandler(db)
+	r.Group(func(r chi.Router) {
+		r.Use(auth.AuthMiddleware)
+		r.Post("/checkout", order.HandleCheckout)
+		r.Get("/orders", order.HandleGetOrders)
+		r.Get("/orders/{orderID}", order.HandleGetOrder)
+		r.Patch("/orders/{orderID}/status", order.HandleUpdateOrderStatus) // admin
 	})
 
 	port := os.Getenv("PORT")
