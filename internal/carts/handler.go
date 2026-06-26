@@ -1,15 +1,93 @@
 package carts
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/inflame-ue/gocommerce/internal/auth"
+	"github.com/inflame-ue/gocommerce/internal/products"
+	"github.com/inflame-ue/gocommerce/internal/response"
+	"github.com/jackc/pgx/v5"
+)
 
 func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
+	userClaims := auth.ClaimsFromContext(r.Context())
+	userID, ok := userClaims["sub"].(int)
+	if !ok {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
+		return
+	}
 
+	items, err := ch.ListCartItems(r.Context(), userID)
+	if err != nil {
+		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to fetch cart items from the database"})
+		return
+	}
+
+	resp := struct {
+		CartItems []CartItem `json:"cart_items"`
+	}{
+		CartItems: items,
+	}
+	response.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Request) {
+	userClaims := auth.ClaimsFromContext(r.Context())
+	userID, ok := userClaims["sub"].(int)
+	if !ok {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
+		return
+	}
 
+	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the productID is invalid"})
+		return
+	}
+
+	_, err = products.NewProductHandler(ch.db).GetProductByID(r.Context(), productID)
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no such product available in the store"})
+		return
+	}
+
+	err = ch.AddCartItem(r.Context(), userID, productID)
+	if err != nil {
+		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not add the product to cart, something went wrong"})
+		return
+	}
+
+	response.WriteJSON(w, http.StatusCreated, map[string]string{"message": "product was successfully added to the cart"})
 }
 
 func (ch *CartHandler) HandleDeleteProductFromCart(w http.ResponseWriter, r *http.Request) {
+	userClaims := auth.ClaimsFromContext(r.Context())
+	userID, ok := userClaims["sub"].(int)
+	if !ok {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the token claims do not contain the userID"})
+		return
+	}
 
+	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "the productID is invalid"})
+		return
+	}
+
+	_, err = products.NewProductHandler(ch.db).GetProductByID(r.Context(), productID)
+	if err != nil && errors.Is(err, pgx.ErrNoRows) {
+		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no such product available in the store"})
+		return
+	}
+
+	err = ch.DeleteCartItem(r.Context(), userID, productID)
+	if err != nil {
+		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not delete the product from cart, something went wrong"})
+		return
+	}
+
+	response.WriteJSON(w, http.StatusCreated, map[string]string{"message": "product was successfully deleted from the cart"})
 }

@@ -49,7 +49,7 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(auth.AuthMiddleware)
 		r.Get("/cart", cart.HandleGetCart)
-		r.Post("/cart", cart.HandleAddProductToCart)
+		r.Post("/cart/{productID}", cart.HandleAddProductToCart)
 		r.Delete("/cart/{productID}", cart.HandleDeleteProductFromCart)
 	})
 
