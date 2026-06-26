@@ -1,15 +1,12 @@
 package carts
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/inflame-ue/gocommerce/internal/auth"
-	"github.com/inflame-ue/gocommerce/internal/products"
 	"github.com/inflame-ue/gocommerce/internal/response"
-	"github.com/jackc/pgx/v5"
 )
 
 func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
@@ -48,12 +45,6 @@ func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	_, err = products.NewProductHandler(ch.db).GetProductByID(r.Context(), productID)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no such product available in the store"})
-		return
-	}
-
 	err = ch.AddCartItem(r.Context(), userID, productID)
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not add the product to cart, something went wrong"})
@@ -77,17 +68,11 @@ func (ch *CartHandler) HandleDeleteProductFromCart(w http.ResponseWriter, r *htt
 		return
 	}
 
-	_, err = products.NewProductHandler(ch.db).GetProductByID(r.Context(), productID)
-	if err != nil && errors.Is(err, pgx.ErrNoRows) {
-		response.WriteJSON(w, http.StatusBadRequest, map[string]string{"error": "no such product available in the store"})
-		return
-	}
-
 	err = ch.DeleteCartItem(r.Context(), userID, productID)
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not delete the product from cart, something went wrong"})
 		return
 	}
 
-	response.WriteJSON(w, http.StatusCreated, map[string]string{"message": "product was successfully deleted from the cart"})
+	response.WriteJSON(w, http.StatusOK, map[string]string{"message": "product was successfully deleted from the cart"})
 }
