@@ -14,7 +14,7 @@ import (
 
 func (oh *OrderHandler) HandleGetOrders(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 
 	orders, err := oh.ListOrders(r.Context(), userID)
 	if err != nil {
@@ -32,7 +32,7 @@ func (oh *OrderHandler) HandleGetOrders(w http.ResponseWriter, r *http.Request) 
 
 func (oh *OrderHandler) HandleGetOrder(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 	
 	orderID, err := strconv.Atoi(chi.URLParam(r, "orderID"))
 	if err != nil {
@@ -51,7 +51,7 @@ func (oh *OrderHandler) HandleGetOrder(w http.ResponseWriter, r *http.Request) {
 
 func (oh *OrderHandler) HandleUpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 	isAdmin := userClaims["is_admin"].(bool)
 
 	if !isAdmin {
@@ -88,7 +88,7 @@ func (oh *OrderHandler) HandleUpdateOrderStatus(w http.ResponseWriter, r *http.R
 
 func (oh *OrderHandler) HandleCheckout(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 
 	order, err := oh.CheckoutOrder(r.Context(), userID)
 	if err != nil {

@@ -11,7 +11,7 @@ import (
 
 func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 	
 	items, err := ch.ListCartItems(r.Context(), userID)
 	if err != nil {
@@ -29,7 +29,7 @@ func (ch *CartHandler) HandleGetCart(w http.ResponseWriter, r *http.Request) {
 
 func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 
 
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
@@ -49,7 +49,7 @@ func (ch *CartHandler) HandleAddProductToCart(w http.ResponseWriter, r *http.Req
 
 func (ch *CartHandler) HandleDeleteProductFromCart(w http.ResponseWriter, r *http.Request) {
 	userClaims := auth.ClaimsFromContext(r.Context())
-	userID := userClaims["sub"].(int)
+	userID := int(userClaims["sub"].(float64))
 
 	productID, err := strconv.Atoi(chi.URLParam(r, "productID"))
 	if err != nil {
