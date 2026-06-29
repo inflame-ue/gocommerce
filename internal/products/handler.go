@@ -23,7 +23,15 @@ func isAdminUser(r *http.Request) bool {
 }
 
 func (ph *ProductHandler) HandleGetProducts(w http.ResponseWriter, r *http.Request) {
-	products, err := ph.ListProducts(r.Context())
+	query := r.URL.Query().Get("q")
+	var products []productModel
+	var err error
+
+	if query != "" {
+		products, err = ph.SearchProducts(r.Context(), query)
+	} else {
+		products, err = ph.ListProducts(r.Context())
+	}
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to retrieve products from the database"})
 		return
