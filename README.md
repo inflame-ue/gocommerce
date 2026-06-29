@@ -1,6 +1,6 @@
 # gocommerce
 
-E-Commerce API built with Go, following the [roadmap.sh project spec](https://roadmap.sh/projects/e-commerce-api).
+E-Commerce API built with Go, following the [roadmap.sh project spec](https://roadmap.sh/projects/ecommerce-api?fl=0).
 
 ## Tech Stack
 
