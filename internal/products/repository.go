@@ -32,6 +32,15 @@ func (ph *ProductHandler) GetProductByID(ctx context.Context, productID int) (*p
 	return &product, nil
 }
 
+func (ph *ProductHandler) GetProductByName(ctx context.Context, productName string) (*productModel, error) {
+	var product productModel
+	row := ph.db.Conn.QueryRow(ctx, "SELECT id, name, price, stock FROM products WHERE name ILIKE '%' || $1 || '%'", productName)
+	if err := row.Scan(&product.ID, &product.Name, &product.Price, &product.Stock); err != nil {
+		return nil, fmt.Errorf("scanning the row: %w", err)
+	}
+	return &product, nil
+}
+
 func (ph *ProductHandler) CreateProduct(ctx context.Context, name string, price float64, stock int) (int, error) {
 	var resultID int
 	row := ph.db.Conn.QueryRow(ctx, "INSERT INTO products(name, price, stock) VALUES ($1, $2, $3) RETURNING id;", name, price, stock)
